@@ -41,12 +41,25 @@ module.exports = (server) => {
         const page = parseInt(req.query.page) || 1;
 
         /**
-         * Finding data
+         * Count student records
          */
-        StudentDB.find().skip(limit * (page - 1)).limit(limit).lean().then((students) => {
-            SuccessResponse(res, 'List student!', students);
-        }).catch((errStudent) => {
-            console.log(errStudent);
+        StudentDB.count().lean().then((studentCount) => {
+            /**
+             * Finding data
+             */
+            StudentDB.find().skip(limit * (page - 1)).limit(limit).lean().then((students) => {
+                SuccessResponse(res, 'List student!', {
+                    count: studentCount,
+                    page: page,
+                    perPage: limit,
+                    result: students
+                });
+            }).catch((errStudent) => {
+                console.log(errStudent);
+                InternalServerErrorResponse(res, 'An error occurred!');
+            });
+        }).catch((errStudentCount) => {
+            console.log(errStudentCount);
             InternalServerErrorResponse(res, 'An error occurred!');
         });
     });
